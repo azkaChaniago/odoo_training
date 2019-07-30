@@ -1,0 +1,43 @@
+<odoo>
+    <data>
+        <!--  -->
+        <!--   <record id="object0" model="exp_default.exp_default"> -->
+        <!--     <field name="name">Object 0</field> -->
+        <!--     <field name="value">0</field> -->
+        <!--   </record> -->
+        <!--  -->
+        <!--   <record id="object1" model="exp_default.exp_default"> -->
+        <!--     <field name="name">Object 1</field> -->
+        <!--     <field name="value">10</field> -->
+        <!--   </record> -->
+        <!--  -->
+        <!--   <record id="object2" model="exp_default.exp_default"> -->
+        <!--     <field name="name">Object 2</field> -->
+        <!--     <field name="value">20</field> -->
+        <!--   </record> -->
+        <!--  -->
+        <!--   <record id="object3" model="exp_default.exp_default"> -->
+        <!--     <field name="name">Object 3</field> -->
+        <!--     <field name="value">30</field> -->
+        <!--   </record> -->
+        <!--  -->
+        <!--   <record id="object4" model="exp_default.exp_default"> -->
+        <!--     <field name="name">Object 4</field> -->
+        <!--     <field name="value">40</field> -->
+        <!--   </record> -->
+        <!--  -->
+        <record model='member.course' id='course_1'>
+            <field name='name'>Programming Mindset</field>
+            <field name='description'>It's not abaot how many languages you master, but the logic you have</field>
+        </record>
+        <record model='member.course' id='course_2'>
+            <field name='name'>Into PythonVerse</field>
+            <field name='description'>Many python beginner get confused with python versioning, which one they should use or why there're 2 active python versions?</field>
+        </record>
+        <record model='member.course' id='course_3'>
+            <field name='name'>Python Just DO IT</field>
+            <!-- <field name='description'>It's not abaot how many languages you master, but the logic you have</field> -->
+        </record>
+
+    </data>
+</odoo>
