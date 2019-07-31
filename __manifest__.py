@@ -8,6 +8,7 @@
 
     'description': """
         Some purpose here
+        module path => ~/.local/share/Odoo/addons/10.0/exp_default
     """,
 
     'author': "Azka Chaniago",

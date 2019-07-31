@@ -26,7 +26,7 @@
         <!--     <field name="value">40</field> -->
         <!--   </record> -->
         <!--  -->
-        <record model='member.course' id='course_1'>
+        <!-- <record model='member.course' id='course_1'>
             <field name='name'>Programming Mindset</field>
             <field name='description'>It's not abaot how many languages you master, but the logic you have</field>
         </record>
@@ -36,8 +36,8 @@
         </record>
         <record model='member.course' id='course_3'>
             <field name='name'>Python Just DO IT</field>
-            <!-- <field name='description'>It's not abaot how many languages you master, but the logic you have</field> -->
-        </record>
+            <field name='description'>It's not abaot how many languages you master, but the logic you have</field>
+        </record> -->
 
     </data>
 </odoo>

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
+from datetime import timedelta
 
 # class exp_default(models.Model):
 #     _name = 'exp_default.exp_default'
@@ -42,13 +43,94 @@ class Course(models.Model):
     session_ids = fields.One2many('member.session', 'course_id', String='Sesi')
     responsible_id = fields.Many2one('res.users', on_delete='set null', string='Penanggung Jawab', index=True)
 
+    _sql_constraints = [
+        ('name_description_check', 'CHECK(name != description)', 'Course Name and descriptions aren\'t suppose to be same'),
+        ('name_unique', 'UNIQUE(name)', 'Course name should be unique')
+    ]
+
+    @api.multi
+    def copy(self, default=None):
+        default = dict(default or {})
+        copied_count = self.search_count([('name', '=like', 'Copy of {}%'.format(self.name))])
+        if not copied_count:
+            new_name = 'Copy of {}'.format(self.name)
+        else:
+            new_name = 'Copy of {} ({})'.format(self.name, copied_count)
+        default['name'] = new_name
+        return super(Course, self).copy(default)
+
 class Session(models.Model):
     _name = 'member.session'
 
     name = fields.Char(required=True)
-    start_date = fields.Date()
+    start_date = fields.Date(string='Tanggal Mulai', default=fields.Date.today)
     duration = fields.Float(digits=(6,2), help='Durasi Hari')
     seats = fields.Integer(string='Jumlah Kursi')
-    instructor_id = fields.Many2one('res.partner', string='Instruktur')
-    course_id = fields.Many2one('member.course', on_delete='cascade', String='Kursus', required=True)
-    attendees_ids = fields.Many2many('res.partner', string='Peserta')
+    course_id = fields.Many2one('member.course', on_delete='cascade', string='Kursus', required=True)
+    instructor_id = fields.Many2one('res.partner',
+                                    string='Instruktur',
+                                    domain=['|', ('instructor', '=', True), ('category_id.name', 'ilike', 'Pengajar')])
+    attendees_ids = fields.Many2many('res.partner', string='Peserta', domain=[('instructor', '=', False)])
+    taken_seats = fields.Float(string='Kursi Terisi', compute='_taken_seats')
+    end_date = fields.Date(string='Tanggal Selesai', store=True, compute='_get_end_date', inverse='_set_end_date')
+    attendees_count = fields.Integer(string='Jumlah Peserta', compute='_get_attendees_count', store=True)
+
+    @api.depends('seats', 'attendees_ids')
+    def _taken_seats(self):
+        for r in self:
+            if not r.seats:
+                r.taken_seats = 0.0
+            else:
+                r.taken_seats = 100.0 * len(r.attendees_ids) / r.seats
+
+    @api.onchange('seats', 'attendees_ids')
+    def _verify_valid_seats(self):
+        if self.seats < 0:
+            return {
+                'value': {
+                    'seats': len(self.attendees_ids) or 1
+                },
+                'warning': {
+                    'title': 'TOTAL SEAT INVALID',
+                    'message': 'Seat/\'s total must be positive'
+                }
+            }
+        if self.seats < len(self.attendees_ids):
+            return {
+                'value': {
+                    'seats': len(self.attendees_ids)
+                },
+                'warning': {
+                    'title': 'PARTICIPANTS ARE OVERLOADED',
+                    'message': 'Add seats or decrease participants or attendees'
+                }
+            }
+
+    @api.constrains('instructor_id', 'attendees_ids')
+    def _check_instructor_not_in_attendees(self):
+        for r in self:
+            if r.instructor_id and r.instructor_id in r.attendees_ids:
+                raise exceptions.ValidationError('An instructor aren\'t allowed to be attendant')   
+
+    @api.depends('start_date', 'duration')
+    def _get_end_date(self):
+        for r in self:
+            if not (r.start_date and r.duration):
+                r.end_date = r.start_date
+                continue
+            start = fields.Datetime.from_string(r.start_date)
+            duration = timedelta(days=r.duration, seconds=-1)
+            r.end_date = start + duration
+    
+    def _set_end_date(self):
+        for r in self:
+            if not (r.start_date and r.end_date):
+                continue
+            start_date = fields.Datetime.from_string(r.start_date)
+            end_date = fields.Datetime.from_string(r.end_date)
+            r.duration = (end_date - start_date).days + 1
+
+    @api.depends('attendees_ids')
+    def _get_attendees_count(self):
+        for r in self:
+            r.attendees_count = len(r.attendees_ids)
