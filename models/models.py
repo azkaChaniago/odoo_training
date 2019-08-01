@@ -38,10 +38,15 @@ from datetime import timedelta
 class Course(models.Model):
     _name = 'member.course'
 
-    name = fields.Char(string='Judul', required=True)
-    description = fields.Text()
-    session_ids = fields.One2many('member.session', 'course_id', String='Sesi')
-    responsible_id = fields.Many2one('res.users', on_delete='set null', string='Penanggung Jawab', index=True)
+    name = fields.Char(string='Judul', required=True, readonly=True, states={'draft': [('readonly', False)]})
+    description = fields.Text(readonly=True, states={'draft': [('readonly', False)]})
+    session_ids = fields.One2many('member.session', 'course_id', String='Sesi', readonly=True, states={'draft': [('readonly', False)]})
+    responsible_id = fields.Many2one('res.users',
+                                    on_delete='set null',
+                                    string='Penanggung Jawab',
+                                    index=True,
+                                    readonly=True,
+                                    states={'draft': [('readonly', False)]})
 
     _sql_constraints = [
         ('name_description_check', 'CHECK(name != description)', 'Course Name and descriptions aren\'t suppose to be same'),
@@ -59,6 +64,24 @@ class Course(models.Model):
         default['name'] = new_name
         return super(Course, self).copy(default)
 
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('open', 'Open'),
+        ('done', 'Done'),
+    ], string='Status', readonly=True, copy=False, default='draft')
+
+    @api.multi
+    def action_confirm(self):
+        self.write({ 'state': 'open' })
+
+    @api.multi
+    def action_cancel(self):
+        self.write({ 'state': 'draft' })
+
+    @api.multi
+    def action_close(self):
+        self.write({ 'state': 'done' })
+
 class Session(models.Model):
     _name = 'member.session'
 
@@ -74,6 +97,7 @@ class Session(models.Model):
     taken_seats = fields.Float(string='Kursi Terisi', compute='_taken_seats')
     end_date = fields.Date(string='Tanggal Selesai', store=True, compute='_get_end_date', inverse='_set_end_date')
     attendees_count = fields.Integer(string='Jumlah Peserta', compute='_get_attendees_count', store=True)
+    color = fields.Integer('Warna')
 
     @api.depends('seats', 'attendees_ids')
     def _taken_seats(self):

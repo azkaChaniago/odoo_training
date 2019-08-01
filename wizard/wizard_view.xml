@@ -1,0 +1,61 @@
+<odoo>
+  <data>
+    
+    <!-- WIZARD FORM -->
+    <record model='ir.ui.view' id='wizard_form_view'>
+      <field name='name'>member.wizard.form</field>
+      <field name='model'>member.wizard</field>
+      <field name='arch' type='xml'>
+        <form string='Tambah Peserta'>
+          <group>
+            <field name='session_id' />
+            <field name='attendees_ids' />
+          </group>
+          <footer>
+            <button name='add_attendance' type='object' string='Tambah' class='oe_highlight' />
+            or
+            <button special='cancel' string='Batal' />
+          </footer>
+        </form>
+      </field>
+    </record>
+
+    <!-- ACTION -->
+    <act_window id='launch_session_wizard'
+                name='Tambah Peserta'
+                src_model='member.session'
+                res_model='member.wizard'
+                view_mode='form'
+                target='new'
+                key2='client_action_multi' />
+
+    <!-- WIZARD FROM MENU ITEM -->
+    <record model='ir.ui.view' id='wizard_form_menu_item'>
+      <field name='name'>member.wizard.form_menu</field>
+      <field name='model'>member.wizard</field>
+      <field name='arch' type='xml'>
+        <form string='Tambah Peserta'>
+          <group>
+            <field name='sessions_ids' widget='many2many_tags' />
+            <field name='attendees_ids' />
+          </group>
+          <footer>
+            <button name='add_multiple_attendance' type='object' string='Tambah' class='oe_highlight' />
+            or
+            <button special='cancel' string='Batal' />
+          </footer>
+        </form>
+      </field>
+    </record>
+
+    <act_window id='launch_session_wizard_form_menu'
+                name='Tambah Peserta'
+                res_model='member.wizard'
+                view_mode='form'
+                view_id='wizard_form_menu_item'
+                target='new' />
+
+    <menuitem id='wizard_menu' name='Tambah Peserta' parent='member_odoo_menu' action='launch_session_wizard_form_menu' />
+
+  </data>
+</odoo>

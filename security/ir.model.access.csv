@@ -1,2 +1,11 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_exp_default_exp_default,exp_default.exp_default,model_exp_default_exp_default,,1,0,0,0
+course_user,course.user,model_member_course,group_member_user,1,1,1,1
+session_user,session.user,model_member_session,group_member_user,1,1,1,1
+course_create,course.create,model_member_course,group_member_create,1,0,1,0
+course_read,course.read,model_member_course,group_member_read,1,0,0,0
+course_update,course.update,model_member_course,group_member_update,1,1,0,0
+course_delete,course.delete,model_member_course,group_member_delete,1,0,0,1
+session_create,session.create,model_member_session,group_member_create,1,0,1,0
+session_read,session.read,model_member_session,group_member_read,1,0,0,0
+session_update,session.update,model_member_session,group_member_update,1,1,0,0
+session_delete,session.delete,model_member_session,group_member_delete,1,0,0,1

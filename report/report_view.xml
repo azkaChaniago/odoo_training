@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<odoo>
+    <data>
+
+        <report id='print_course'
+                string='Report XML'
+                model='member.course'
+                name='laporan.course'
+                rml='exp_default/report/print_course.rml'
+                auto='False'
+                menu='False' />
+
+    </data>
+</odoo>
