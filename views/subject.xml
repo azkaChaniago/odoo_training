@@ -1,0 +1,45 @@
+<odoo>
+  <data>
+
+    <!-- subject Tree View -->
+    <record model='ir.ui.view' id='subject_tree_view'>
+      <field name='name'>member.subject.tree</field>
+      <field name='model'>member.subject</field>
+      <field name='arch' type='xml'>
+        <tree string='Subject List' decoration-info='duration&lt;5' decoration-danger='duration&gt;15'>
+          <field name='name' />
+          <field name='description' />
+          <field name='instructor_id' />
+        </tree>
+      </field>
+    </record>
+
+    <!-- subject Form View -->
+    <record model='ir.ui.view' id='subject_form_view'>
+      <field name='name'>member.subject.form</field>
+      <field name='model'>member.subject</field>
+      <field name='arch' type='xml'>
+        <form string='Form subject'>
+          <sheet>
+            <group>
+              <field name='name' />
+              <field name='description' />
+              <field name='instructor_id' /> 
+            </group>
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+    <!-- Subject Action/Event -->
+    <record model='ir.actions.act_window' id='subject_list_action'>
+      <field name='name'>Subject</field>
+      <field name='res_model'>member.subject</field>
+      <field name='view_type'>form</field>
+      <field name='view_mode'>tree,form</field>
+    </record>
+
+    <menuitem id='subject_odoo_menu' name='Subjects' parent='main_member_odoo_menu' action='subject_list_action' />
+
+  </data>
+</odoo>
