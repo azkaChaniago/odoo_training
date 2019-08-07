@@ -2,7 +2,7 @@
 
 from odoo import models, fields, api
 from datetime import timedelta
-
+from odoo.exceptions import Warning
 # class exp_default(models.Model):
 #     _name = 'exp_default.exp_default'
 
@@ -53,22 +53,31 @@ class Course(models.Model):
         ('name_unique', 'UNIQUE(name)', 'Course name should be unique')
     ]
 
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('open', 'Open'),
+        ('done', 'Done'),
+    ], string='Status', readonly=True, copy=False, default='draft')
+
     @api.multi
     def copy(self, default=None):
         default = dict(default or {})
         copied_count = self.search_count([('name', '=like', 'Copy of {}%'.format(self.name))])
+        print '============', copied_count
         if not copied_count:
             new_name = 'Copy of {}'.format(self.name)
         else:
             new_name = 'Copy of {} ({})'.format(self.name, copied_count)
         default['name'] = new_name
         return super(Course, self).copy(default)
+    
+    @api.multi
+    def unlink(self, default=None):
+        for line in self:
+            if line.state == 'done':
+                raise Warning('Status done tidak bisa dihapus')
+        return super(Course, self).unlink()
 
-    state = fields.Selection([
-        ('draft', 'Draft'),
-        ('open', 'Open'),
-        ('done', 'Done'),
-    ], string='Status', readonly=True, copy=False, default='draft')
 
     @api.multi
     def action_confirm(self):
@@ -99,42 +108,6 @@ class Session(models.Model):
     attendees_count = fields.Integer(string='Jumlah Peserta', compute='_get_attendees_count', store=True)
     color = fields.Integer('Warna')
 
-    @api.depends('seats', 'attendees_ids')
-    def _taken_seats(self):
-        for r in self:
-            if not r.seats:
-                r.taken_seats = 0.0
-            else:
-                r.taken_seats = 100.0 * len(r.attendees_ids) / r.seats
-
-    @api.onchange('seats', 'attendees_ids')
-    def _verify_valid_seats(self):
-        if self.seats < 0:
-            return {
-                'value': {
-                    'seats': len(self.attendees_ids) or 1
-                },
-                'warning': {
-                    'title': 'TOTAL SEAT INVALID',
-                    'message': 'Seat/\'s total must be positive'
-                }
-            }
-        if self.seats < len(self.attendees_ids):
-            return {
-                'value': {
-                    'seats': len(self.attendees_ids)
-                },
-                'warning': {
-                    'title': 'PARTICIPANTS ARE OVERLOADED',
-                    'message': 'Add seats or decrease participants or attendees'
-                }
-            }
-
-    @api.constrains('instructor_id', 'attendees_ids')
-    def _check_instructor_not_in_attendees(self):
-        for r in self:
-            if r.instructor_id and r.instructor_id in r.attendees_ids:
-                raise exceptions.ValidationError('An instructor aren\'t allowed to be attendant')   
 
     @api.depends('start_date', 'duration')
     def _get_end_date(self):
@@ -158,3 +131,50 @@ class Session(models.Model):
     def _get_attendees_count(self):
         for r in self:
             r.attendees_count = len(r.attendees_ids)
+
+    @api.depends('seats', 'attendees_ids')
+    def _taken_seats(self):
+        for line in self:
+            if not line.seats:
+                line.taken_seats = 0.0
+            else:
+                line.taken_seats = 100.0 * len(line.attendees_ids) / line.seats
+
+    @api.model
+    def create(self, value):
+        # value['name'] = 'Default Name'
+        res = super(Session, self).create(value)
+        if not res.attendees_ids:
+            raise Warning('Jumlah peserta Kosong')
+        return res
+
+    @api.onchange('seats', 'attendees_ids')
+    def _verify_valid_seats(self):
+        if self.seats < 0:
+            return {
+                'value': {
+                    'seats': len(self.attendees_ids) or 1
+                },
+                'warning': {
+                    'title': 'TOTAL SEAT INVALID',
+                    'message': 'Seat\'s total must be positive'
+                }
+            }
+        if self.seats < len(self.attendees_ids):
+            return {
+                'value': {
+                    'seats': len(self.attendees_ids)
+                },
+                'warning': {
+                    'title': 'PARTICIPANTS ARE OVERLOADED',
+                    'message': 'Add seats or decrease participants or attendees'
+                }
+            }
+
+    @api.constrains('instructor_id', 'attendees_ids')
+    def _check_instructor_not_in_attendees(self):
+        for r in self:
+            if r.instructor_id and r.instructor_id in r.attendees_ids:
+                raise exceptions.ValidationError('An instructor aren\'t allowed to be attendant')   
+
+    
